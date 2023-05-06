@@ -6,7 +6,7 @@
 #<MAX_STEPOVER> = 3
 #<SAFE_HEIGHT> = 10
 #<RPM> = 20000
-#<FEED> = 2000
+#<FEED> = 1000
 
 (Add 2 tool diameters to the Y. We will first pass not touching and step untill we are not cutting at the end)
 #<Y> = [#<Y> + #<TOOL_DIAMETER> * 2]
@@ -27,13 +27,12 @@ S[#<RPM>]
 M3 
 
 #<CURRENT_CUT> = 1
-F[#<FEED>]
 
 o101 while [#<CURRENT_CUT> LT #<NUM_CUTS> ]
-  G18 G3 X[#<X>] Z0 I0 K-[#<SAFE_HEIGHT> / 2]
+  G18 G3 X[#<X>] Z0 I0 K-[#<SAFE_HEIGHT> / 2] F10000
 
-  G1 X0
-  G18 G3 X0 Z[#<SAFE_HEIGHT>] I0 K[#<SAFE_HEIGHT> / 2]
+  G1 X0 F[#<FEED>]
+  G18 G3 X0 Z[#<SAFE_HEIGHT>] I0 K[#<SAFE_HEIGHT> / 2] F10000
   G0 X[#<X>]Y[#<CURRENT_CUT> * #<STEPOVER>]
   
   #<CURRENT_CUT> = [#<CURRENT_CUT> + 1]
