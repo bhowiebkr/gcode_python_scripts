@@ -1,18 +1,22 @@
 %
 (Smooth facing operation)
 
-#<X> = 400
-#<Y> = 200
+#<X> = 100
+#<Y> = 50
 #<TOOL_DIAMETER> = 6
-#<MAX_STEPOVER> = 2
+#<MAX_STEPOVER> = 3
 #<SAFE_HEIGHT> = 20
 #<RPM> = 23000
-#<FEED> = 2000
+#<FEED> = 5000
+
+(Add 2 tool diameters to the Y. We will first pass not touching and step untill we are not cutting at the end)
+#<Y> = [#<Y> + #<TOOL_DIAMETER> * 2]
 
 (Calculate the number of cuts)
 #<NUM_CUTS> = FUP[#<Y> / #<MAX_STEPOVER>]
 #<STEPOVER> = [#<Y> / #<NUM_CUTS>]
-#<Y_POSITION> = [#<TOOL_DIAMETER> / 2 - #<STEPOVER>]
+#<Y_START> = [-#<TOOL_DIAMETER> / 2 - #<STEPOVER>]
+#<X_START> = [#<X> + #<TOOL_DIAMETER>]
 
 G21 (G21: sets the machine to use metric units for all subsequent commands)
 G40 (G40: cancels any previously set cutter radius compensation and sets the tool offset to zero.)
@@ -21,15 +25,19 @@ G64 P0.03 (G64 P0.03: sets the motion control to a blended path with a maximum d
 G17 (G17: selects the XY plane for cutting. This code specifies that all subsequent X, Y, and Z coordinates are given in a plane parallel to the XY plane.)
 
 G0 Z20.0 (move the spindle up so we don't hit anything)
-G0 X[#<X> + #<TOOL_DIAMETER> / 2 + 10] Y-10
-S[#<RPM>] M3 
+G0 X[#<X_START>] Y[#<Y_START>]
+S[#<RPM>] 
+M3 
 
-#1 = 0 (assign parameter #1 the value of 0)
-F25 (set a feed rate)
-o101 while [#<NUM_CUTS> GT 0]
-  G1 X0
-  G1 Y[#1/10] X1
-  #1 = [#1+1] (increment the test counter)
+#<CURRENT_CUT> = 0
+F[#<FEED>] (Set the feed)
+o101 while [#<CURRENT_CUT> LT #<NUM_CUTS> ]
+  G1 X-10
+  G0 Z[#<SAFE_HEIGHT>]
+  G0 X[#<X_START>]Y[#<CURRENT_CUT> * #<STEPOVER> - #<Y_START>]
+  G0 Z0
+  #<CURRENT_CUT> = [#<CURRENT_CUT> + 1] (increment the test counter)
 o101 endwhile
+
 M2 (end program)
 %
